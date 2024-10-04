@@ -1,10 +1,11 @@
+mod bheap;
 mod draw;
 mod graph;
 mod priority_queue;
-
+use bheap::{BinaryHeap, PriorityQueue};
 use draw::draw;
 use graph::{Cardinal, Edge, Edges, Node};
-use priority_queue::PriorityQueue;
+// use priority_queue::PriorityQueue;
 use std::collections::HashMap;
 struct Maze {
     width: usize,
@@ -21,16 +22,16 @@ impl Maze {
             Cardinal::East,
             Cardinal::West,
         ];
-    
+
         for node in &grid {
             edge_walls.entry(node.clone()).or_insert(walls.clone());
         }
-    
+
         self.remove_walls(edges, &mut edge_walls);
-    
+
         return edge_walls;
     }
-    
+
     fn remove_walls(&self, edges: Vec<Edge>, edge_walls: &mut HashMap<Node, Vec<Cardinal>>) {
         for edge in edges.clone() {
             match edge.origin.cardinal_adjacency(edge.destination) {
@@ -38,7 +39,7 @@ impl Maze {
                     edge_walls
                         .entry(edge.origin)
                         .and_modify(|w| w.retain(|&c| c != cardinal));
-    
+
                     edge_walls
                         .entry(edge.destination)
                         .and_modify(|w| w.retain(|&c| c != cardinal.opposite()));
@@ -58,14 +59,13 @@ fn main() {
 
     let g = nodes(m.width, m.height);
 
-    // cost, minimum spanning tree as Vec<Node>
+    // cost, minimum spanning tree as Vec<Edge>
     let (_, mst) = lazy_prims(g.clone(), m.width, m.height);
 
-    // println!("{cost}");
-    // println!("{mst:#?}");
-
+    // Assign walls to nodes based on the edges in the MST.
     m.walls = m.wall_edges(g, mst);
-    // println!("{:#?}", m.walls);
+
+    // Generate and save image of the maze.
     let document = draw(&m);
     let _ = svg::save("image.svg", &document);
 }
@@ -87,12 +87,15 @@ fn lazy_prims(grid: Vec<Node>, width: usize, height: usize) -> (usize, Edges) {
     let mut mst_cost = 0;
     let mut mst_edges: Edges = vec![];
 
-    let mut priority_queue: PriorityQueue = PriorityQueue::new();
+    let max_edges = max_edges(width, height);
+
+    let mut priority_queue = BinaryHeap::with_capacity(max_edges);
+    // let mut priority_queue: PriorityQueue = PriorityQueue::new();
     let mut visited: Vec<Node> = vec![];
     priority_queue.add_edges(grid[0], &mut visited, width, height);
 
-    while !priority_queue.queue.is_empty() && edge_count != mst_len {
-        let edge = priority_queue.lowest_cost_edge();
+    while !priority_queue.heap.is_empty() && edge_count != mst_len {
+        let edge = priority_queue.lowest_cost_edge().unwrap();
 
         if visited.contains(&edge.destination) {
             continue;
@@ -102,12 +105,7 @@ fn lazy_prims(grid: Vec<Node>, width: usize, height: usize) -> (usize, Edges) {
         edge_count += 1;
         mst_cost += edge.cost as usize;
 
-        priority_queue.add_edges(
-            edge.destination,
-            &mut visited,
-            width,
-            height,
-        );
+        priority_queue.add_edges(edge.destination, &mut visited, width, height);
     }
 
     if edge_count != mst_len {
@@ -115,4 +113,13 @@ fn lazy_prims(grid: Vec<Node>, width: usize, height: usize) -> (usize, Edges) {
     }
 
     return (mst_cost, mst_edges);
+}
+
+fn max_edges(width: usize, height: usize) -> usize {
+    let corner_edges = 16;
+    let sides_edges_width = (width - 2) * 6 * 2;
+    let sides_edges_height = (height - 2) * 6 * 2;
+    let inner_edges = (width - 2) ^ 2 * 8;
+    let max_edges = corner_edges + sides_edges_width + sides_edges_height + inner_edges;
+    max_edges
 }
