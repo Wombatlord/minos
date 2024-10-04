@@ -52,8 +52,8 @@ impl Maze {
 
 fn main() {
     let mut m = Maze {
-        width: 100,
-        height: 100,
+        width: 15,
+        height: 15,
         walls: HashMap::new(),
     };
 

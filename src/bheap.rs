@@ -1,5 +1,6 @@
 use crate::graph::{Edge, Node};
 
+#[allow(dead_code)]
 pub trait PriorityQueue<T: PartialOrd> {
     fn with_capacity(sz: usize) -> Self;
     fn contains(&self, el: &T) -> bool;
@@ -60,6 +61,14 @@ impl<T: PartialOrd> BinaryHeap<T> {
     }
 
     pub fn swim(&mut self, mut k: usize) -> usize {
+        // Ensures we satisfy the heap invariant (child > parent).
+        // Determine the index of the parent of the element at index k.
+        // If k is not the root (idx 0), and the element at index k (child) 
+        // is less than the element at the index of its parent,
+        // swap the child and parent.
+        // Update the value of k to reflect the new index of the swapped element,
+        // find its new parent and repeat the process until either
+        // the element at k becomes the root, or is greater than its parent.
         let mut parent = (k.saturating_sub(1)) / 2;
 
         while k > 0 && self.heap[k] < self.heap[parent] {
@@ -72,6 +81,16 @@ impl<T: PartialOrd> BinaryHeap<T> {
     }
 
     pub fn sink(&mut self, mut k: usize) -> usize {
+        // Ensures we satisfy the heap invariant (child > parent).
+        // Determine the indices of the left and right child of the element at index k.
+        // Assume the element at k is less than its children.
+        // Check if the left child exists, and if so, check if the child is less than the parent.
+        // If so, update to reflect the new smallest element.
+        // Check the right child exists and against the current assumed smallest element and update if necessary.
+        // If the element at index k turns out not to be less than a child, swap it, preferentially with the right
+        // child if it was greater than both children.
+        // update k to reflect the new index of the sunk element.
+
         let heap_size = self.heap.len();
         loop {
             let left = k * 2 + 1;
