@@ -1,4 +1,4 @@
-use crate::graph::{Edge, Node};
+use crate::graph::{Edge, Gridlike, Node};
 
 #[allow(dead_code)]
 pub trait PriorityQueue<T: PartialOrd> {
@@ -117,7 +117,7 @@ impl<T: PartialOrd> BinaryHeap<T> {
     }
 }
 
-impl BinaryHeap<Edge> {
+impl BinaryHeap<Edge<Node>> {
     pub fn add_edges(&mut self, node: Node, visited: &mut Vec<Node>, width:usize, height:usize) {
         visited.push(node);
     
@@ -131,7 +131,26 @@ impl BinaryHeap<Edge> {
         }
     }
 
-    pub fn lowest_cost_edge(&mut self) -> Option<Edge> {
+    pub fn lowest_cost_edge(&mut self) -> Option<Edge<Node>> {
+        self.poll()
+    }
+}
+
+impl BinaryHeap<Edge<usize>> {
+    pub fn add_edges(&mut self, idx: usize, visited: &mut Vec<bool>, grid: &Gridlike<Node>) {
+        visited[idx] = true;
+    
+        // let edges = node.node_edges(width, height);
+        let edges = grid.edges(idx);
+    
+        for edge in edges {
+            if !visited[edge.destination] {
+                self.insert(edge);
+            }
+        }
+    }
+
+    pub fn lowest_cost_edge(&mut self) -> Option<Edge<usize>> {
         self.poll()
     }
 }
