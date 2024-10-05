@@ -11,6 +11,7 @@ impl PriorityQueue {
     }
 
     pub fn add_edges(&mut self, node: Node, visited: &mut Vec<Node>, width:usize, height:usize) {
+        // self.queue.sort();
         visited.push(node);
     
         let edges = node.node_edges(width, height);

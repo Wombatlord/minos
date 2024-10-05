@@ -1,10 +1,28 @@
 pub type Edges = Vec<Edge>;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, Eq, Hash, Clone, Copy)]
 pub struct Edge {
     pub origin: Node,
     pub destination: Node,
     pub cost: u8,
+}
+
+impl PartialOrd for Edge {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Edge {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.cost.cmp(&other.cost)
+    }
+}
+
+impl PartialEq for Edge {
+    fn eq(&self, other: &Self) -> bool {
+        self.cost == other.cost
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
